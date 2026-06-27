@@ -13,7 +13,7 @@
 | 打包类型 | `jar` |
 | 主类 | `com.linkedyou.backend.BackendApplication` |
 | 主类路径 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/BackendApplication.java` |
-| 当前主要功能 | 用户管理 CRUD、更改密码、统一响应、基础异常处理、BCrypt 密码哈希、密码规则校验 |
+| 当前主要功能 | 用户管理 CRUD、更改密码、文档管理 CRUD、PDF 上传与读取、文档发布归档、统一响应、基础异常处理、BCrypt 密码哈希、密码规则校验 |
 
 ## 2. Java 安装与版本信息
 
@@ -120,6 +120,7 @@
 | 组件 | 类型 | 路径 | 职责 |
 | --- | --- | --- | --- |
 | `UserController` | REST Controller | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/controller/UserController.java` | 用户相关 HTTP API 统一入口，当前提供用户 CRUD 和更改密码 |
+| `DocumentController` | REST Controller | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/controller/DocumentController.java` | 文档相关 HTTP API 统一入口，当前提供文档 CRUD、PDF 上传读取、发布、归档和软删除 |
 
 当前 `UserController` API：
 
@@ -131,6 +132,20 @@
 | `PUT` | `/api/users/{id}` | 更新用户 |
 | `PUT` | `/api/users/{id}/password` | 更改用户密码 |
 | `DELETE` | `/api/users/{id}` | 软删除用户 |
+
+当前 `DocumentController` API：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/api/documents` | 查询未软删除文档列表，可按状态过滤 |
+| `GET` | `/api/documents/{id}` | 查询单个文档 |
+| `GET` | `/api/documents/{id}/pdf` | 读取 PDF 文件并返回给前端展示 |
+| `POST` | `/api/documents` | 创建草稿文档 |
+| `POST` | `/api/documents/upload` | 上传 PDF 并创建草稿文档 |
+| `PUT` | `/api/documents/{id}` | 更新文档并递增版本号 |
+| `POST` | `/api/documents/{id}/publish` | 发布文档，记录审核人和发布时间 |
+| `POST` | `/api/documents/{id}/archive` | 归档文档 |
+| `DELETE` | `/api/documents/{id}` | 软删除文档 |
 
 ### 6.3 用户模块组件
 
@@ -147,7 +162,25 @@
 | `UserChangePasswordRequest` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/user/dto/UserChangePasswordRequest.java` | 更改密码请求参数 |
 | `UserResponse` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/user/dto/UserResponse.java` | 用户响应数据，排除 `password` |
 
-### 6.4 通用组件
+### 6.4 文档模块组件
+
+| 组件 | 类型 | 路径 | 职责 |
+| --- | --- | --- | --- |
+| `Document` | Entity | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/entity/Document.java` | 映射 `documents` 表 |
+| `DocumentMapper` | MyBatis-Plus Mapper | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/mapper/DocumentMapper.java` | 继承 `BaseMapper<Document>`，负责文档表 CRUD |
+| `DocumentManagementService` | Service 接口 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/service/DocumentManagementService.java` | 定义文档管理业务接口 |
+| `DocumentManagementServiceImpl` | Service 实现 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/service/DocumentManagementServiceImpl.java` | 实现文档列表、详情、创建、更新、发布、归档、软删除、slug 唯一性校验 |
+| `DocumentCreateRequest` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/dto/DocumentCreateRequest.java` | 创建文档请求参数 |
+| `DocumentUpdateRequest` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/dto/DocumentUpdateRequest.java` | 更新文档请求参数 |
+| `DocumentPublishRequest` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/dto/DocumentPublishRequest.java` | 发布文档请求参数 |
+| `DocumentUploadRequest` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/dto/DocumentUploadRequest.java` | 上传 PDF 并创建文档的 multipart 表单参数 |
+| `DocumentResponse` | DTO | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/dto/DocumentResponse.java` | 文档响应数据，排除软删除时间 |
+| `DocumentFileStorage` | 文件存储接口 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/file/DocumentFileStorage.java` | 定义文档文件保存和清理能力 |
+| `DocumentPdfFile` | PDF 文件读取结果 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/file/DocumentPdfFile.java` | 返回 PDF Resource、文件名和文件大小 |
+| `LocalDocumentFileStorage` | 本地文件存储实现 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/file/LocalDocumentFileStorage.java` | 按 `storage.local.root` 保存和读取 PDF，校验扩展名、Content-Type、文件头、路径和大小 |
+| `StoredDocumentFile` | 文件存储结果 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/document/file/StoredDocumentFile.java` | 返回落盘路径和文件大小 |
+
+### 6.5 通用组件
 
 | 组件 | 类型 | 路径 | 职责 |
 | --- | --- | --- | --- |
@@ -156,12 +189,17 @@
 | `BusinessException` | 业务异常 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/common/exception/BusinessException.java` | 带业务错误码的运行时异常 |
 | `GlobalExceptionHandler` | 全局异常处理 | `/Users/hailinfan/work/workspace/framework/backend/src/main/java/com/linkedyou/backend/common/exception/GlobalExceptionHandler.java` | 统一处理业务异常、参数校验异常和未捕获异常 |
 
-### 6.5 测试组件
+### 6.6 测试组件
 
 | 组件 | 类型 | 路径 | 职责 |
 | --- | --- | --- | --- |
 | `BackendApplicationTests` | Spring Boot 上下文测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/BackendApplicationTests.java` | 验证应用上下文可以加载 |
 | `UserManagementServiceTest` | Service 单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/user/service/UserManagementServiceTest.java` | 覆盖用户创建、更新、软删除核心行为 |
+| `UserControllerTest` | Controller 单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/controller/UserControllerTest.java` | 覆盖用户 API 统一响应、校验和异常映射 |
+| `DocumentManagementServiceTest` | Service 单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/document/service/DocumentManagementServiceTest.java` | 覆盖文档创建、上传、PDF 读取、更新、发布、归档、软删除和 slug 唯一性 |
+| `DocumentControllerTest` | Controller 单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/controller/DocumentControllerTest.java` | 覆盖文档 API 统一响应、multipart 上传、PDF 二进制响应、校验和异常映射 |
+| `LocalDocumentFileStorageTest` | 文件存储单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/document/file/LocalDocumentFileStorageTest.java` | 覆盖 PDF 保存、PDF 读取、路径越界拒绝、非 PDF 拒绝和文件大小限制 |
+| `LayerLoggingAspectTest` | AOP 单元测试 | `/Users/hailinfan/work/workspace/framework/backend/src/test/java/com/linkedyou/backend/common/logging/LayerLoggingAspectTest.java` | 覆盖 Controller 和 Service 入口、出口、异常日志 |
 
 ## 7. 资源配置文件
 
@@ -241,14 +279,15 @@
 
 | 文件 | 路径 | 说明 |
 | --- | --- | --- |
-| `LinkedYou_Backend.postman_collection.json` | `/Users/hailinfan/work/workspace/framework/backend/postman/LinkedYou_Backend.postman_collection.json` | 当前已实现用户 API 的 Postman 测试集合，覆盖创建、列表、详情、更新、更改密码、删除和异常响应 |
+| `LinkedYou_Backend.postman_collection.json` | `/Users/hailinfan/work/workspace/framework/backend/postman/LinkedYou_Backend.postman_collection.json` | 当前已实现用户和文档 API 的 Postman 测试集合，覆盖创建、PDF 上传读取、列表、详情、更新、状态流转、删除和异常响应 |
 | `LinkedYou_Local.postman_environment.json` | `/Users/hailinfan/work/workspace/framework/backend/postman/LinkedYou_Local.postman_environment.json` | 本地 Postman 环境，默认 `baseUrl=http://localhost:8080` |
+| `sample.pdf` | `/Users/hailinfan/work/workspace/framework/backend/postman/sample.pdf` | Postman 文档上传测试使用的最小 PDF 样例 |
 
 ## 8.2 OpenAPI 3.0 文档
 
 | 文件 | 路径 | 说明 |
 | --- | --- | --- |
-| `openapi.yaml` | `/Users/hailinfan/work/workspace/framework/backend/docs/openapi.yaml` | 当前已实现用户 API 的 OpenAPI 3.0.3 规范文件，可导入 Swagger Editor、Swagger UI 或 Postman |
+| `openapi.yaml` | `/Users/hailinfan/work/workspace/framework/backend/docs/openapi.yaml` | 当前已实现用户和文档 API 的 OpenAPI 3.0.3 规范文件，可导入 Swagger Editor、Swagger UI 或 Postman |
 
 ## 9. 构建输出路径
 
@@ -274,10 +313,13 @@
 | `BackendApplicationTests` | 1 | 通过 |
 | `UserManagementServiceTest` | 10 | 通过 |
 | `UserControllerTest` | 7 | 通过 |
+| `DocumentManagementServiceTest` | 13 | 通过 |
+| `DocumentControllerTest` | 10 | 通过 |
+| `LocalDocumentFileStorageTest` | 6 | 通过 |
 | `LayerLoggingAspectTest` | 3 | 通过 |
-| 合计 | 21 | 通过 |
+| 合计 | 50 | 通过 |
 
-注意：该测试记录来自本次更改密码 API 和密码规则配置完成后的 `./mvnw test` 运行结果。
+注意：该测试记录来自本次 PDF 读取接口完成后的 `./mvnw test` 运行结果。
 
 ## 11. 当前风险与建议
 
@@ -288,6 +330,7 @@
 | YAML 配置疑似错误 | `allow-bean-definition-overriding=true:` 不是常见 YAML 写法 | 改为 `allow-bean-definition-overriding: true` |
 | 数据库明文配置 | MySQL 用户名密码写在 `application.yml` | 改为环境变量或 profile 配置 |
 | 用户列表未分页 | 当前 `GET /api/users` 返回全部未删除用户 | 后续增加分页 |
+| 文档列表未分页 | 当前 `GET /api/documents` 返回全部未删除文档 | 后续增加分页 |
 | 认证尚未实现 | 已有用户管理和密码哈希，但未实现登录接口 | 后续仍在 `UserController` 下补登录、登出、刷新 Token |
 
 ## 12. 相关文档
@@ -296,4 +339,5 @@
 | --- | --- | --- |
 | 后端架构说明 | `/Users/hailinfan/work/workspace/framework/backend/docs/architecture.md` | 当前后端整体架构 |
 | 用户管理设计文档 | `/Users/hailinfan/work/workspace/framework/backend/docs/user-management-design.md` | 用户管理模块设计 |
+| 文档管理设计文档 | `/Users/hailinfan/work/workspace/framework/backend/docs/document-management-design.md` | 文档管理模块设计 |
 | 本文档 | `/Users/hailinfan/work/workspace/framework/backend/docs/project-java-components.md` | Java 环境、组件、依赖、路径整理 |

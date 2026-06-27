@@ -6,7 +6,7 @@
 
 当前后端项目是 `LinkedYouBackEnd`，使用 Spring Boot 构建，目标是为 LinkedYou 系统提供后端 API、用户体系、权限体系和文档管理能力。
 
-从现有文件看，项目已经完成基础工程骨架、运行配置、日志配置和数据库表设计，但业务层代码仍处于初始阶段：目前只有 Spring Boot 启动类，还没有 Controller、Service、Mapper、Entity 等业务实现类。
+从现有文件看，项目已经完成基础工程骨架、运行配置、日志配置、数据库表设计、用户管理模块和文档管理模块。当前已形成 Controller、Service、Mapper、Entity、DTO、统一响应、异常处理和测试的基础闭环。
 
 ## 2. 技术栈
 
@@ -76,9 +76,7 @@ flowchart LR
     App --> LocalStorage
 ```
 
-当前代码中，`BackendApplication` 是唯一的 Java 主类，负责启动 Spring Boot 应用。`pom.xml` 已经引入 Web、MyBatis-Plus、MySQL、AOP、Validation、Log4j2 等依赖，因此工程具备扩展为标准三层后端的基础。
-
-当前尚未出现实际的 REST Controller、Service、Mapper 或实体类，因此运行时请求链路仍未形成完整闭环。
+当前代码中，`BackendApplication` 负责启动 Spring Boot 应用。用户和文档 API 通过 `controller` 包暴露 REST 入口，业务规则集中在对应 Service，数据访问通过 MyBatis-Plus Mapper 完成。
 
 ## 5. 配置架构
 
@@ -288,9 +286,23 @@ erDiagram
 | 文档元数据 | `title`、`slug`、`summary`、`category`、`tags` |
 | 文档正文 | `content` |
 | 生命周期 | `status`、`published_at`、`deleted_at` |
-| 附件 | `file_path`、`file_size` |
+| 附件 | `file_path`、`file_size`，当前上传和读取接口只允许 PDF |
 | 版本 | `version` |
 | 所属人与审核人 | `owner_user_id`、`reviewed_by` |
+
+当前已实现文档管理 API：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/api/documents` | 查询未软删除文档列表，可按 `status` 过滤 |
+| `GET` | `/api/documents/{id}` | 查询单个未软删除文档 |
+| `GET` | `/api/documents/{id}/pdf` | 读取已上传 PDF，返回给前端 inline 展示 |
+| `POST` | `/api/documents` | 创建草稿文档，校验未软删除文档中 `slug` 唯一 |
+| `POST` | `/api/documents/upload` | 上传 PDF 并创建草稿文档，保存文件路径和大小 |
+| `PUT` | `/api/documents/{id}` | 更新文档，传入字段按需更新并递增版本号 |
+| `POST` | `/api/documents/{id}/publish` | 发布文档，记录审核人和发布时间 |
+| `POST` | `/api/documents/{id}/archive` | 归档文档 |
+| `DELETE` | `/api/documents/{id}` | 软删除文档，写入 `deleted_at` |
 
 ## 8. 模块边界
 
@@ -303,10 +315,10 @@ erDiagram
 | 用户模块 | 已有表设计、CRUD 代码和更改密码 API | 用户账号、账号状态、登录安全字段、用户增删改查、密码变更 |
 | 认证模块 | 已有表设计 | 会话、Token、验证码、登录审计 |
 | 角色权限模块 | 已有表设计 | 角色、权限、用户角色、角色权限 |
-| 文档模块 | 已有表设计 | 文档正文、附件路径、发布和审核 |
-| API 层 | 尚未实现 | 所有 Controller 集中在 `controller` 包下，统一承接 HTTP API |
-| 业务层 | 尚未实现 | Service、业务事务、规则校验 |
-| 数据访问层 | 依赖已引入，Mapper 未实现 | MyBatis-Plus Mapper、实体映射 |
+| 文档模块 | 已有表设计和文档管理 API | 文档正文、PDF 上传读取、附件路径、发布、归档、审核和软删除 |
+| API 层 | 已实现用户和文档 Controller | 所有 Controller 集中在 `controller` 包下，统一承接 HTTP API |
+| 业务层 | 已实现用户和文档 Service | Service、业务事务、规则校验 |
+| 数据访问层 | 已实现用户和文档 Mapper | MyBatis-Plus Mapper、实体映射 |
 
 ## 9. 建议的后续代码分层
 
@@ -363,6 +375,24 @@ com.linkedyou.backend
 
 用户 API 使用统一响应结构 `ApiResponse`。Controller 只负责 HTTP 入参、校验触发和响应封装，具体业务由 `UserManagementService` 承担，数据访问由 `UserMapper` 承担。
 
+### 9.2 已实现文档管理 API
+
+当前文档管理 API 已集中在 `com.linkedyou.backend.controller.DocumentController`：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/api/documents` | 查询未软删除文档列表，可按状态过滤 |
+| `GET` | `/api/documents/{id}` | 查询单个文档 |
+| `GET` | `/api/documents/{id}/pdf` | 读取 PDF 文件，返回 `application/pdf` 二进制内容 |
+| `POST` | `/api/documents` | 创建草稿文档 |
+| `POST` | `/api/documents/upload` | 上传 PDF 并创建草稿文档 |
+| `PUT` | `/api/documents/{id}` | 更新文档并递增版本号 |
+| `POST` | `/api/documents/{id}/publish` | 发布文档 |
+| `POST` | `/api/documents/{id}/archive` | 归档文档 |
+| `DELETE` | `/api/documents/{id}` | 软删除文档 |
+
+文档 API 使用统一响应结构 `ApiResponse`。Controller 只负责 HTTP 入参、校验触发和响应封装，具体业务由 `DocumentManagementService` 承担，数据访问由 `DocumentMapper` 承担。文档删除使用 `deleted_at` 软删除；列表和详情默认过滤已软删除记录。上传接口使用 `multipart/form-data` 接收 PDF 文件和表单字段，文件保存到 `storage.local.root`，数据库写入失败时会清理已保存文件。PDF 读取接口校验文件路径必须位于 `storage.local.root` 下，并以 `inline` 方式返回 `application/pdf` 内容。
+
 ## 10. 测试现状
 
 当前测试类：
@@ -370,6 +400,10 @@ com.linkedyou.backend
 ```text
 src/test/java/com/linkedyou/backend/BackendApplicationTests.java
 src/test/java/com/linkedyou/backend/user/service/UserManagementServiceTest.java
+src/test/java/com/linkedyou/backend/controller/UserControllerTest.java
+src/test/java/com/linkedyou/backend/document/service/DocumentManagementServiceTest.java
+src/test/java/com/linkedyou/backend/controller/DocumentControllerTest.java
+src/test/java/com/linkedyou/backend/common/logging/LayerLoggingAspectTest.java
 ```
 
 已有测试内容：
@@ -380,24 +414,31 @@ src/test/java/com/linkedyou/backend/user/service/UserManagementServiceTest.java
 | `createUserPersistsActiveUserWithHashedPassword()` | 验证创建用户时启用账号并使用 BCrypt 哈希密码 |
 | `updateUserChangesOnlyProvidedFields()` | 验证更新用户时只修改请求中提供的字段 |
 | `deleteUserSoftDeletesExistingUser()` | 验证删除用户时写入 `deleted_at` 做软删除 |
+| `createDocumentPersistsDraftWithSerializedTags()` | 验证创建文档时写入草稿状态并序列化标签 |
+| `updateDocumentChangesProvidedFieldsAndIncrementsVersion()` | 验证更新文档时只修改请求字段并递增版本 |
+| `publishDocumentSetsPublishedStatusReviewerAndTime()` | 验证发布文档时写入发布状态、审核人与发布时间 |
+| `uploadPdfDocumentStoresFileAndPersistsDraftWithFormFields()` | 验证上传 PDF 时保存文件信息并写入草稿文档 |
+| `openPdfLoadsStoredFileForActiveDocument()` | 验证文档 PDF 读取时按数据库文件路径加载文件 |
+| `storePdfRejectsNonPdfContent()` | 验证非 PDF 内容被拒绝 |
+| `deleteDocumentSoftDeletesExistingDocument()` | 验证删除文档时写入 `deleted_at` 做软删除 |
 
-当前已覆盖 Spring Boot 上下文加载和用户管理 Service 的核心行为。后续角色权限、文档等模块落地后，应继续补充 Controller 层、Service 层和 Mapper 层测试。
+当前已覆盖 Spring Boot 上下文加载、用户管理、文档管理和日志 AOP 的核心行为。后续角色权限、认证等模块落地后，应继续补充 Controller 层、Service 层和 Mapper 层测试。
 
 ## 11. 当前架构风险和待补齐项
 
 | 类型 | 现状 | 建议 |
 | --- | --- | --- |
-| 业务 API | 已实现 `UserController`，角色权限和文档 Controller 待实现 | 继续补齐角色权限、文档的基础接口 |
-| 数据访问 | 已实现用户 Entity / Mapper，其它模块待实现 | 按 SQL 表结构继续生成角色权限、文档实体和 Mapper |
+| 业务 API | 已实现 `UserController` 和 `DocumentController`，角色权限 Controller 待实现 | 继续补齐角色权限的基础接口 |
+| 数据访问 | 已实现用户和文档 Entity / Mapper，其它模块待实现 | 按 SQL 表结构继续生成角色权限实体和 Mapper |
 | 认证安全 | 有会话表和验证码表，但无认证实现 | 后续明确 JWT、Session 或混合方案 |
 | 配置重复 | `application.yml` 与 `application.properties` 都配置了应用名 | 统一保留一个来源 |
 | 配置可用性 | `spring.main.allow-bean-definition-overriding=true:` 形态不符合常见 YAML 写法 | 建议改为 `allow-bean-definition-overriding: true` |
 | 敏感信息 | 数据库账号密码写在配置文件中 | 后续改为环境变量或 profile 配置 |
-| 日志 | 已有基础日志，但无请求入口/出口日志 | 可通过 Filter 或 AOP 增加 API 请求日志 |
-| 文件存储 | 已有本地存储路径配置，但无上传实现 | 文档附件模块实现时补齐 |
+| 日志 | 已通过 AOP 覆盖 Controller 和 Service 入口、出口、异常日志 | 后续按敏感字段规则继续扩展脱敏 |
+| 文件存储 | 已实现 PDF 上传到本地目录 | 后续按权限、下载、预览或对象存储需求扩展 |
 
 ## 12. 总结
 
-当前后端是一个 Spring Boot + MyBatis-Plus + MySQL 的基础工程骨架。工程层面已经具备 Web、校验、AOP、日志、数据库访问和测试依赖，数据库层面已经设计了用户、认证、角色权限和文档管理核心表。用户管理 CRUD 和更改密码 API 已落地，菜单由前端手动定义，不纳入当前后端职责。
+当前后端是一个 Spring Boot + MyBatis-Plus + MySQL 的基础工程。工程层面已经具备 Web、校验、AOP、日志、数据库访问和测试依赖，数据库层面已经设计了用户、认证、角色权限和文档管理核心表。用户管理 CRUD、更改密码 API、文档管理 CRUD、PDF 上传读取、文档发布归档 API 已落地，菜单由前端手动定义，不纳入当前后端职责。
 
-从架构成熟度看，当前处于“数据库模型和工程基础已完成，用户管理业务代码已开始落地”的阶段。下一步最自然的推进顺序是继续完善认证能力，再按角色权限、文档管理两个业务域补齐 API、Service、Mapper 和测试。
+从架构成熟度看，当前处于“数据库模型和工程基础已完成，用户与文档两个业务域已落地”的阶段。下一步最自然的推进顺序是继续完善认证能力，再补齐角色权限业务域的 API、Service、Mapper 和测试。

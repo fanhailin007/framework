@@ -9,6 +9,8 @@ servers:
 tags:
   - name: Users
     description: 用户管理 API
+  - name: Documents
+    description: 文档管理 API
 paths:
   /api/users:
     get:
@@ -297,6 +299,353 @@ paths:
                     data: null
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/documents:
+    get:
+      tags:
+        - Documents
+      operationId: listDocuments
+      summary: 查询文档列表
+      description: 查询未软删除文档，可按状态过滤。当前接口未分页。
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 文档状态，可选 `draft`、`published`、`archived`。
+          schema:
+            type: string
+            enum:
+              - draft
+              - published
+              - archived
+          example: published
+      responses:
+        "200":
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentListResponse"
+        "400":
+          description: 文档状态无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                statusInvalid:
+                  summary: 状态无效
+                  value:
+                    success: false
+                    code: DOCUMENT_STATUS_INVALID
+                    message: document status is invalid
+                    data: null
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags:
+        - Documents
+      operationId: createDocument
+      summary: 创建文档
+      description: 创建草稿文档。`slug` 在未软删除文档中必须唯一。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentCreateRequest"
+            examples:
+              createDocument:
+                summary: 创建文档请求
+                value:
+                  title: Postman Document
+                  slug: postman-document
+                  summary: Postman 创建的测试文档
+                  content: "# Postman Document"
+                  ownerUserId: 1
+                  category: guide
+                  tags:
+                    - postman
+                    - guide
+                  createdByUserId: 1
+                  updatedByUserId: 1
+      responses:
+        "200":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: 参数校验失败或 slug 重复
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/upload:
+    post:
+      tags:
+        - Documents
+      operationId: uploadDocument
+      summary: 上传 PDF 并创建文档
+      description: 接收前端 multipart 表单，上传 PDF 文件并把表单信息写入 `documents` 表。只允许 PDF，服务端会校验扩展名、Content-Type 和文件头。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DocumentUploadRequest"
+      responses:
+        "200":
+          description: 上传并创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: 参数校验失败、文件缺失、非 PDF、文件过大或 slug 重复
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                fileRequired:
+                  summary: 文件缺失
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_REQUIRED
+                    message: document file is required
+                    data: null
+                fileInvalid:
+                  summary: 非 PDF 文件
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_INVALID
+                    message: only PDF files are allowed
+                    data: null
+                fileTooLarge:
+                  summary: 文件过大
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_TOO_LARGE
+                    message: document file is too large
+                    data: null
+                slugExists:
+                  summary: slug 重复
+                  value:
+                    success: false
+                    code: DOCUMENT_SLUG_EXISTS
+                    message: document slug already exists
+                    data: null
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}:
+    get:
+      tags:
+        - Documents
+      operationId: getDocumentById
+      summary: 查询单个文档
+      description: 根据主键 ID 查询未软删除文档。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      responses:
+        "200":
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: ID 非正数、文档不存在或文档已软删除
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      tags:
+        - Documents
+      operationId: updateDocument
+      summary: 更新文档
+      description: 更新指定文档。请求体字段均为可选字段，只更新传入字段，更新后版本号递增。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdateRequest"
+            examples:
+              updateDocument:
+                summary: 更新文档请求
+                value:
+                  title: Updated Postman Document
+                  slug: updated-postman-document
+                  summary: Postman 更新后的测试文档
+                  tags:
+                    - postman
+                    - updated
+                  updatedByUserId: 1
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: 参数校验失败、文档不存在或 slug 重复
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags:
+        - Documents
+      operationId: deleteDocument
+      summary: 软删除文档
+      description: 软删除指定文档，写入 `deleted_at`，不会物理删除数据库记录。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      responses:
+        "200":
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidResponse"
+        "400":
+          description: ID 非正数、文档不存在或文档已软删除
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}/pdf:
+    get:
+      tags:
+        - Documents
+      operationId: openDocumentPdf
+      summary: 读取 PDF 文件
+      description: 根据文档 ID 读取已上传 PDF，返回 `application/pdf` 二进制内容，前端可使用 iframe、embed 或浏览器 PDF viewer 展示。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      responses:
+        "200":
+          description: PDF 文件内容
+          headers:
+            Content-Disposition:
+              description: 使用 `inline` 让浏览器直接预览 PDF。
+              schema:
+                type: string
+                example: inline; filename="document.pdf"
+            Content-Length:
+              description: PDF 文件大小。
+              schema:
+                type: integer
+                format: int64
+                example: 204800
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 文档不存在、文档未绑定文件、文件丢失、路径非法或文件不是 PDF
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                fileNotAvailable:
+                  summary: 文档未绑定文件
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_NOT_AVAILABLE
+                    message: document file is not available
+                    data: null
+                fileNotFound:
+                  summary: 文件不存在
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_NOT_FOUND
+                    message: document file is not found
+                    data: null
+                fileInvalid:
+                  summary: 非法文件
+                  value:
+                    success: false
+                    code: DOCUMENT_FILE_INVALID
+                    message: only PDF files are allowed
+                    data: null
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}/publish:
+    post:
+      tags:
+        - Documents
+      operationId: publishDocument
+      summary: 发布文档
+      description: 将文档状态设置为 `published`，记录审核人、更新人和发布时间。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentPublishRequest"
+            examples:
+              publishDocument:
+                summary: 发布文档请求
+                value:
+                  reviewedBy: 1
+                  updatedByUserId: 1
+      responses:
+        "200":
+          description: 发布成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: 参数校验失败、文档不存在或文档已软删除
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}/archive:
+    post:
+      tags:
+        - Documents
+      operationId: archiveDocument
+      summary: 归档文档
+      description: 将文档状态设置为 `archived`。
+      parameters:
+        - $ref: "#/components/parameters/DocumentIdPath"
+      responses:
+        "200":
+          description: 归档成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseEnvelope"
+        "400":
+          description: ID 非正数、文档不存在或文档已软删除
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   parameters:
     UserIdPath:
@@ -304,6 +653,16 @@ components:
       in: path
       required: true
       description: 用户主键 ID，必须为正数。
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 1
+    DocumentIdPath:
+      name: id
+      in: path
+      required: true
+      description: 文档主键 ID，必须为正数。
       schema:
         type: integer
         format: int64
@@ -439,6 +798,210 @@ components:
           maxLength: 100
           format: password
           example: PostmanPass789!
+    DocumentCreateRequest:
+      type: object
+      required:
+        - title
+        - slug
+      properties:
+        documentId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1001
+        title:
+          type: string
+          maxLength: 255
+          example: Postman Document
+        slug:
+          type: string
+          maxLength: 255
+          example: postman-document
+        summary:
+          type: string
+          nullable: true
+          maxLength: 512
+          example: Postman 创建的测试文档
+        content:
+          type: string
+          nullable: true
+          example: "# Postman Document"
+        ownerUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        category:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: guide
+        tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+            maxLength: 100
+          example:
+            - postman
+            - guide
+        filePath:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: /docs/postman-document.pdf
+        fileSize:
+          type: integer
+          nullable: true
+          format: int64
+          example: 204800
+        createdByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        updatedByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+    DocumentUploadRequest:
+      type: object
+      required:
+        - file
+        - title
+        - slug
+      properties:
+        file:
+          type: string
+          format: binary
+          description: PDF 文件。服务端校验 `.pdf` 扩展名、`application/pdf` Content-Type 和 `%PDF-` 文件头。
+        documentId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1001
+        title:
+          type: string
+          maxLength: 255
+          example: Uploaded Postman Document
+        slug:
+          type: string
+          maxLength: 255
+          example: uploaded-postman-document
+        summary:
+          type: string
+          nullable: true
+          maxLength: 512
+          example: Postman 上传的 PDF 文档
+        content:
+          type: string
+          nullable: true
+          example: "# Uploaded Postman Document"
+        ownerUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        category:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: guide
+        tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+            maxLength: 100
+          example:
+            - postman
+            - pdf
+        createdByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        updatedByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+    DocumentUpdateRequest:
+      type: object
+      description: 更新文档请求。所有字段均可选，只更新传入字段。
+      properties:
+        documentId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1001
+        title:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: Updated Postman Document
+        slug:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: updated-postman-document
+        summary:
+          type: string
+          nullable: true
+          maxLength: 512
+          example: Postman 更新后的测试文档
+        content:
+          type: string
+          nullable: true
+          example: "# Updated Postman Document"
+        ownerUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        category:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: guide
+        tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+            maxLength: 100
+          example:
+            - postman
+            - updated
+        filePath:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: /docs/updated-postman-document.pdf
+        fileSize:
+          type: integer
+          nullable: true
+          format: int64
+          example: 409600
+        updatedByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+    DocumentPublishRequest:
+      type: object
+      properties:
+        reviewedBy:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        updatedByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
     UserResponse:
       type: object
       description: 用户响应数据，不包含密码哈希、软删除时间等内部字段。
@@ -489,6 +1052,98 @@ components:
           nullable: true
           format: date-time
           example: "2026-06-26T18:30:00"
+    DocumentResponse:
+      type: object
+      description: 文档响应数据，不包含软删除时间等内部字段。
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        documentId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1001
+        title:
+          type: string
+          example: Postman Document
+        slug:
+          type: string
+          example: postman-document
+        summary:
+          type: string
+          nullable: true
+          example: Postman 创建的测试文档
+        content:
+          type: string
+          nullable: true
+          example: "# Postman Document"
+        status:
+          type: string
+          enum:
+            - draft
+            - published
+            - archived
+          example: draft
+        ownerUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        category:
+          type: string
+          nullable: true
+          example: guide
+        tags:
+          type: array
+          items:
+            type: string
+          example:
+            - postman
+            - guide
+        filePath:
+          type: string
+          nullable: true
+          example: /docs/postman-document.pdf
+        fileSize:
+          type: integer
+          nullable: true
+          format: int64
+          example: 204800
+        version:
+          type: integer
+          example: 1
+        publishedAt:
+          type: string
+          nullable: true
+          format: date-time
+          example: "2026-06-27T19:00:00"
+        reviewedBy:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        createdByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        updatedByUserId:
+          type: integer
+          nullable: true
+          format: int64
+          example: 1
+        createdAt:
+          type: string
+          nullable: true
+          format: date-time
+          example: "2026-06-27T18:30:00"
+        updatedAt:
+          type: string
+          nullable: true
+          format: date-time
+          example: "2026-06-27T19:00:00"
     UserResponseEnvelope:
       type: object
       required:
@@ -528,6 +1183,45 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserResponse"
+    DocumentResponseEnvelope:
+      type: object
+      required:
+        - success
+        - code
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        code:
+          type: string
+          example: OK
+        message:
+          type: string
+          example: success
+        data:
+          $ref: "#/components/schemas/DocumentResponse"
+    DocumentListResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        code:
+          type: string
+          example: OK
+        message:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentResponse"
     VoidResponse:
       type: object
       required:
