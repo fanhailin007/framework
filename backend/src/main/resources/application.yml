@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: linkedyou
+  main:
+    allow-bean-definition-overriding=true:
+  
+  datasource:
+    url: jdbc:mysql://10.211.55.20:3306/LinkedyouDev
+      ?connectTimeout=5000
+      &socketTimeout=10000
+      &tcpKeepAlive=true
+      &allowPublicKeyRetrieval=true
+      &sslMode=DISABLED
+      &useSSL=false
+      &serverTimezone=Asia/Tokyo
+      &characterEncoding=utf8
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+storage:
+  local:
+    root: /Users/hailinfan/data/docs
+    max-file-size: 50MB
+
+security:
+  password-policy:
+    enabled: true
+    min-length: 8
+    max-length: 100
+    require-uppercase: true
+    require-lowercase: true
+    require-digit: true
+    require-special: true
+    reject-whitespace: true
+    
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: AUTO
+
+    
+#logging:
+#  level:
+#    org.mybatis: debug
+#    org.mybatis.spring: debug
+#    com.baomidou.mybatisplus: debug
+#    com.zaxxer.hikari: debug
+#    com.mysql.cj.jdbc: debug
+#    com.mysql.cj.protocol: debug
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl   # 控制台打印SQL与参数

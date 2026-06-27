@@ -1,0 +1,447 @@
+{
+  "info": {
+    "_postman_id": "b0f4c1b6-9ce8-4f2f-a1b7-6d2d4c021001",
+    "name": "LinkedYou Backend API Tests",
+    "description": "Postman tests for the currently implemented LinkedYou backend APIs. Run the requests in order so created user variables are available to later requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User - success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('newUserId', `postman_user_${suffix}`);",
+                  "pm.collectionVariables.set('newUserEmail', `postman_user_${suffix}@example.com`);",
+                  "pm.collectionVariables.set('newUserPhone', `139${suffix.slice(-8).padStart(8, '0')}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('ApiResponse is success', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "  pm.expect(json.message).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Created user data is returned', function () {",
+                  "  pm.expect(json.data).to.be.an('object');",
+                  "  pm.expect(json.data.id).to.be.a('number');",
+                  "  pm.expect(json.data.userId).to.eql(pm.collectionVariables.get('newUserId'));",
+                  "  pm.expect(json.data.email).to.eql(pm.collectionVariables.get('newUserEmail'));",
+                  "  pm.expect(json.data.phone).to.eql(pm.collectionVariables.get('newUserPhone'));",
+                  "  pm.expect(json.data.active).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('createdUserId', json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{newUserId}}\",\n  \"password\": \"PostmanPass123!\",\n  \"displayName\": \"Postman Test User\",\n  \"email\": \"{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman.png\",\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "description": "Creates a unique test user and stores the returned id in collection variable `createdUserId`."
+          },
+          "response": []
+        },
+        {
+          "name": "List Users - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('ApiResponse is success', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Created user appears in list', function () {",
+                  "  const createdUserId = Number(pm.collectionVariables.get('createdUserId'));",
+                  "  const matched = json.data.some(user => user.id === createdUserId);",
+                  "  pm.expect(matched).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "description": "Returns all non-deleted users."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User By ID - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('ApiResponse is success', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "});",
+                  "",
+                  "pm.test('Returned user matches created user', function () {",
+                  "  pm.expect(json.data.id).to.eql(Number(pm.collectionVariables.get('createdUserId')));",
+                  "  pm.expect(json.data.userId).to.eql(pm.collectionVariables.get('newUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{createdUserId}}"
+              ]
+            },
+            "description": "Returns one active user by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "const expectedUserId = `${pm.collectionVariables.get('newUserId')}_updated`;",
+                  "pm.test('ApiResponse is success', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "});",
+                  "",
+                  "pm.test('Updated fields are returned', function () {",
+                  "  pm.expect(json.data.id).to.eql(Number(pm.collectionVariables.get('createdUserId')));",
+                  "  pm.expect(json.data.userId).to.eql(expectedUserId);",
+                  "  pm.expect(json.data.displayName).to.eql('Postman Updated User');",
+                  "  pm.expect(json.data.active).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('updatedUserId', expectedUserId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{newUserId}}_updated\",\n  \"password\": \"PostmanPass456!\",\n  \"displayName\": \"Postman Updated User\",\n  \"email\": \"updated_{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman-updated.png\",\n  \"active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{createdUserId}}"
+              ]
+            },
+            "description": "Updates the created user."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('ApiResponse is success with null data', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "  pm.expect(json.message).to.eql('success');",
+                  "  pm.expect(json.data).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"PostmanPass456!\",\n  \"newPassword\": \"PostmanPass789!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{createdUserId}}/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{createdUserId}}",
+                "password"
+              ]
+            },
+            "description": "Changes the created user's password after the update request set it to PostmanPass456!."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('ApiResponse is success with null data', function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.code).to.eql('OK');",
+                  "  pm.expect(json.message).to.eql('success');",
+                  "  pm.expect(json.data).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{createdUserId}}"
+              ]
+            },
+            "description": "Soft deletes the created user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deleted User - USER_NOT_FOUND",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Business error is returned', function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.code).to.eql('USER_NOT_FOUND');",
+                  "  pm.expect(json.data).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{createdUserId}}"
+              ]
+            },
+            "description": "Confirms soft-deleted users are not returned."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - validation error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP status is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Validation error is returned', function () {",
+                  "  pm.expect(json.success).to.eql(false);",
+                  "  pm.expect(json.code).to.eql('VALIDATION_ERROR');",
+                  "  pm.expect(json.message).to.be.a('string').and.not.empty;",
+                  "  pm.expect(json.data).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Invalid User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "description": "Checks request body validation for create user."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "newUserId",
+      "value": ""
+    },
+    {
+      "key": "newUserEmail",
+      "value": ""
+    },
+    {
+      "key": "newUserPhone",
+      "value": ""
+    },
+    {
+      "key": "createdUserId",
+      "value": ""
+    },
+    {
+      "key": "updatedUserId",
+      "value": ""
+    }
+  ]
+}
