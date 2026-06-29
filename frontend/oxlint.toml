@@ -1,0 +1,87 @@
+# Oxlint 配置文件
+# 适用于 Vue 3 + TypeScript + Vite 项目
+
+# 包含的文件和目录
+include = [
+  "src/**/*.{js,ts,vue}",
+  "library/**/*.{js,ts,vue}",
+  "mock/**/*.{js,ts}",
+  "types/**/*.{js,ts}",
+  "*.{js,ts,json}"
+]
+
+# 排除的文件和目录
+exclude = [
+  "node_modules/**",
+  "dist/**",
+  "build/**",
+  "coverage/**",
+  "public/**",
+  "*.min.js",
+  "*.bundle.js"
+]
+
+# 规则配置
+[typescript]
+# TypeScript 相关规则
+no-unused-vars = "error"
+no-console = "warn"
+no-debugger = "error"
+no-alert = "error"
+no-eval = "error"
+no-implied-eval = "error"
+no-new-func = "error"
+no-script-url = "error"
+
+[javascript]
+# JavaScript 相关规则
+no-unused-vars = "error"
+no-console = "warn"
+no-debugger = "error"
+no-alert = "error"
+no-eval = "error"
+no-implied-eval = "error"
+no-new-func = "error"
+no-script-url = "error"
+
+# 代码质量规则
+[quality]
+no-var = "error"
+prefer-const = "error"
+no-duplicate-imports = "error"
+no-unreachable = "error"
+no-constant-condition = "error"
+no-empty = "warn"
+no-extra-semi = "error"
+no-irregular-whitespace = "error"
+no-multiple-empty-lines = "warn"
+no-trailing-spaces = "error"
+no-unused-expressions = "error"
+
+# 安全规则
+[security]
+no-unsafe-finally = "error"
+no-unsafe-negation = "error"
+no-unsafe-optional-chaining = "error"
+no-unsafe-unary-negation = "error"
+
+# 性能规则
+[performance]
+no-array-constructor = "warn"
+no-new-object = "warn"
+no-new-wrappers = "error"
+no-param-reassign = "warn"
+no-return-assign = "error"
+no-self-compare = "error"
+no-sequences = "error"
+no-throw-literal = "error"
+no-unmodified-loop-condition = "error"
+no-useless-call = "error"
+no-useless-concat = "error"
+no-useless-return = "error"
+
+# Vue 相关规则
+[vue]
+no-unused-vars = "error"
+no-console = "warn"
+no-debugger = "error" 

@@ -1,0 +1,19 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="96" height="96" rx="24" fill="#F4F8FF"/>
+  <rect x="8" y="8" width="80" height="80" rx="20" fill="url(#adminAvatarBg)"/>
+  <circle cx="48" cy="38" r="15" fill="#DCE8FA"/>
+  <path d="M30 75C31.9 62.9 39 56 48 56C57 56 64.1 62.9 66 75H30Z" fill="#DCE8FA"/>
+  <path d="M33 75C34.7 66.2 40.3 61 48 61C55.7 61 61.3 66.2 63 75H33Z" fill="#FFFFFF" fill-opacity="0.28"/>
+  <path d="M35 38C38.2 27.5 45.7 23.3 58.8 27.4C57 24.2 53.1 21 48 21C39.7 21 33 27.7 33 36C33 36.7 33.7 37.5 35 38Z" fill="#24466F"/>
+  <path d="M65 60L76 64V72.8C76 80 71.7 85.9 65 88C58.3 85.9 54 80 54 72.8V64L65 60Z" fill="#2F6FED"/>
+  <path d="M60.5 73L63.7 76.1L70.4 68.8" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 26H34" stroke="#AFC5E8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M22 34H30" stroke="#AFC5E8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M66 28H74" stroke="#AFC5E8" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="adminAvatarBg" x1="18" y1="13" x2="78" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDEBFF"/>
+    </linearGradient>
+  </defs>
+</svg>
