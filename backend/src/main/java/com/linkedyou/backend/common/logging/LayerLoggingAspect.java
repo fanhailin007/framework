@@ -19,6 +19,16 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * Module Name: Common Logging Module
+ * Main Function: Adds cross-cutting logging behavior around controller and service execution.
+ * Parameters: N/A.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Aspect
 @Component
 public class LayerLoggingAspect {

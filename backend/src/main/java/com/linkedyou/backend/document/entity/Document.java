@@ -8,6 +8,16 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Maps the document database table structure to a Java entity.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 @TableName("documents")
 public class Document {

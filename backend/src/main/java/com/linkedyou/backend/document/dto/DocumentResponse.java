@@ -8,6 +8,16 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Carries sanitized response data for document operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 public class DocumentResponse {
 

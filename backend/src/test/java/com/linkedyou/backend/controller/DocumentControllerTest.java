@@ -39,6 +39,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Module Name: API Controller Module Test
+ * Main Function: Verifies Document Controller behavior with automated JUnit test cases.
+ * Parameters: JUnit fixtures, mocks, and test method inputs declared in this test class.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @ExtendWith(MockitoExtension.class)
 class DocumentControllerTest {
 

@@ -1,15 +1,26 @@
 package com.linkedyou.backend.document.dto;
 
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Carries validated request data for document update operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 public class DocumentUpdateRequest {
 
-    @Positive
+    @PositiveOrZero
     private Long documentId;
 
     @Size(max = 255)
@@ -23,7 +34,7 @@ public class DocumentUpdateRequest {
 
     private String content;
 
-    @Positive
+    @PositiveOrZero
     private Long ownerUserId;
 
     @Size(max = 100)
@@ -37,6 +48,6 @@ public class DocumentUpdateRequest {
     @Positive
     private Long fileSize;
 
-    @Positive
+    @PositiveOrZero
     private Long updatedByUserId;
 }

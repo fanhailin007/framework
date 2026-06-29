@@ -5,6 +5,16 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Module Name: User Management Module
+ * Main Function: Carries sanitized response data for user operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 public class UserResponse {
 
@@ -13,6 +23,8 @@ public class UserResponse {
     private String userId;
 
     private String displayName;
+
+    private String role;
 
     private String email;
 
@@ -35,6 +47,7 @@ public class UserResponse {
         response.setId(user.getId());
         response.setUserId(user.getUserId());
         response.setDisplayName(user.getDisplayName());
+        response.setRole(user.getRole());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
         response.setAvatar(user.getAvatar());

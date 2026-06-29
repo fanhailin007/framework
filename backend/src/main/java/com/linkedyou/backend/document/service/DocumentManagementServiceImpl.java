@@ -22,6 +22,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Implements document management business rules, transaction boundaries, and persistence orchestration.
+ * Parameters: Method parameters defined by the service contract.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Service
 public class DocumentManagementServiceImpl implements DocumentManagementService {
 

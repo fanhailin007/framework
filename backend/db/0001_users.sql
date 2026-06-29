@@ -14,6 +14,7 @@ CREATE TABLE `users` (
   `document_id` BIGINT UNSIGNED NULL COMMENT '文档ID',
   `user_id` VARCHAR(64) NOT NULL COMMENT '登录用户名',
   `display_name` VARCHAR(100) NULL COMMENT '显示名称/昵称',
+  `role` VARCHAR(100) NULL COMMENT '用户角色',
   `email` VARCHAR(191) NULL COMMENT '邮箱',
   `phone` VARCHAR(32) NULL COMMENT '手机号',
   `password` VARCHAR(255) NOT NULL COMMENT 'BCrypt密码哈希',
@@ -43,13 +44,13 @@ CREATE TABLE `users` (
 ALTER TABLE `users` AUTO_INCREMENT = 1;
 
 INSERT INTO `users` (
-  `id`, `document_id`, `user_id`, `display_name`, `email`, `phone`, `password`, `avatar`,
+  `id`, `document_id`, `user_id`, `display_name`, `role`, `email`, `phone`, `password`, `avatar`,
   `is_active`, `failed_login_count`, `locked_until`, `password_changed_at`,
   `last_login_at`, `last_login_ip`, `created_by_user_id`, `updated_by_user_id`,
   `created_at`, `updated_at`, `deleted_at`
 ) VALUES
-  (1, NULL, 'admin', '系统管理员', 'admin@example.com', '13900000001', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/admin.png', 1, 0, NULL, '2026-06-01 09:00:00', '2026-06-26 18:30:00', '127.0.0.1', 1, 1, '2026-06-01 09:00:00', '2026-06-26 18:30:00', NULL),
-  (2, NULL, 'editor', '内容编辑', 'editor@example.com', '13900000002', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/editor.png', 1, 1, NULL, '2026-06-02 09:00:00', '2026-06-25 16:20:00', '127.0.0.1', 1, 1, '2026-06-02 09:00:00', '2026-06-25 16:20:00', NULL),
-  (3, NULL, 'viewer', '只读用户', 'viewer@example.com', '13900000003', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/viewer.png', 1, 0, NULL, '2026-06-03 09:00:00', NULL, NULL, 1, 1, '2026-06-03 09:00:00', '2026-06-03 09:00:00', NULL),
-  (4, NULL, 'disabled_user', '停用用户', 'disabled@example.com', '13900000004', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', NULL, 0, 3, '2026-07-01 00:00:00', '2026-06-04 09:00:00', NULL, NULL, 1, 1, '2026-06-04 09:00:00', '2026-06-04 09:00:00', NULL),
-  (5, NULL, 'deleted_user', '已删除用户', 'deleted@example.com', '13900000005', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', NULL, 1, 0, NULL, '2026-06-05 09:00:00', NULL, NULL, 1, 1, '2026-06-05 09:00:00', '2026-06-06 09:00:00', '2026-06-06 09:00:00');
+  (1, NULL, 'admin', '系统管理员', 'Admin', 'admin@example.com', '13900000001', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/admin.png', 1, 0, NULL, '2026-06-01 09:00:00', '2026-06-26 18:30:00', '127.0.0.1', 1, 1, '2026-06-01 09:00:00', '2026-06-26 18:30:00', NULL),
+  (2, NULL, 'editor', '内容编辑', 'EcOperator', 'editor@example.com', '13900000002', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/editor.png', 1, 1, NULL, '2026-06-02 09:00:00', '2026-06-25 16:20:00', '127.0.0.1', 1, 1, '2026-06-02 09:00:00', '2026-06-25 16:20:00', NULL),
+  (3, NULL, 'viewer', '只读用户', 'ReOperator', 'viewer@example.com', '13900000003', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', '/avatars/viewer.png', 1, 0, NULL, '2026-06-03 09:00:00', NULL, NULL, 1, 1, '2026-06-03 09:00:00', '2026-06-03 09:00:00', NULL),
+  (4, NULL, 'disabled_user', '停用用户', 'TaxOperator', 'disabled@example.com', '13900000004', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', NULL, 0, 3, '2026-07-01 00:00:00', '2026-06-04 09:00:00', NULL, NULL, 1, 1, '2026-06-04 09:00:00', '2026-06-04 09:00:00', NULL),
+  (5, NULL, 'deleted_user', '已删除用户', 'FinancialManagement', 'deleted@example.com', '13900000005', '$2a$10$jlaB2Q8Hmo35OMhWEebU7udnjDCTrUbzsnTc.AJGo9MlzZIqXy0um', NULL, 1, 0, NULL, '2026-06-05 09:00:00', NULL, NULL, 1, 1, '2026-06-05 09:00:00', '2026-06-06 09:00:00', '2026-06-06 09:00:00');

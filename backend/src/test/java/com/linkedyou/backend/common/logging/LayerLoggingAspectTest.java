@@ -11,6 +11,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Module Name: Common Logging Module Test
+ * Main Function: Verifies Layer Logging Aspect behavior with automated JUnit test cases.
+ * Parameters: JUnit fixtures, mocks, and test method inputs declared in this test class.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 class LayerLoggingAspectTest {
 
     private final LayerLoggingAspect aspect = new LayerLoggingAspect();

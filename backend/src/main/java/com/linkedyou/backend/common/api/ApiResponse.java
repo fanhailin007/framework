@@ -4,6 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Module Name: Common API Module
+ * Main Function: Carries sanitized response data for api operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

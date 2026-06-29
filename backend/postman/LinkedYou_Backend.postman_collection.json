@@ -75,7 +75,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{newUserId}}\",\n  \"password\": \"PostmanPass123!\",\n  \"displayName\": \"Postman Test User\",\n  \"email\": \"{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman.png\",\n  \"active\": true\n}"
+              "raw": "{\n  \"userId\": \"{{newUserId}}\",\n  \"password\": \"PostmanPass123!\",\n  \"displayName\": \"Postman Test User\",\n  \"email\": \"{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman.png\",\n  \"active\": true,\n  \"role\": \"Admin\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/users",
@@ -88,6 +88,157 @@
               ]
             },
             "description": "Creates a unique test user and stores the returned id in collection variable `createdUserId`."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('login succeeds', function () { pm.expect(json.success).to.eql(true); pm.expect(json.code).to.eql('OK'); });",
+                  "pm.test('tokens are returned', function () { pm.expect(json.data.accessToken).to.be.a('string').and.not.empty; pm.expect(json.data.refreshToken).to.be.a('string').and.not.empty; });",
+                  "pm.test('user is returned', function () { pm.expect(json.data.user.id).to.eql(Number(pm.collectionVariables.get('createdUserId'))); });",
+                  "pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "pm.test(\"role is returned\", function () { pm.expect(json.data.user.role).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{newUserId}}\",\n  \"password\": \"PostmanPass123!\",\n  \"deviceId\": \"postman-device\",\n  \"deviceName\": \"Postman Runtime\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            },
+            "description": "Logs in the newly created active user and stores returned tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('refresh succeeds', function () { pm.expect(json.success).to.eql(true); pm.expect(json.code).to.eql('OK'); });",
+                  "pm.test('new access token is returned', function () { pm.expect(json.data.accessToken).to.be.a('string').and.not.empty; });",
+                  "pm.test('refresh token remains available', function () { pm.expect(json.data.refreshToken).to.eql(pm.collectionVariables.get('refreshToken')); });",
+                  "pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "pm.test(\"role is returned\", function () { pm.expect(json.data.user.role).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "refresh-token"
+              ]
+            },
+            "description": "Refreshes the access token with the saved refresh token. The refresh token is not rotated in the current implementation."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User - LOGIN_FAILED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('login fails with generic code', function () { pm.expect(json.success).to.eql(false); pm.expect(json.code).to.eql('LOGIN_FAILED'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{newUserId}}\",\n  \"password\": \"WrongPass123!\",\n  \"deviceId\": \"postman-device\",\n  \"deviceName\": \"Postman Runtime\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            },
+            "description": "Verifies wrong password returns the generic LOGIN_FAILED response."
           },
           "response": []
         },
@@ -221,7 +372,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{newUserId}}_updated\",\n  \"password\": \"PostmanPass456!\",\n  \"displayName\": \"Postman Updated User\",\n  \"email\": \"updated_{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman-updated.png\",\n  \"active\": false\n}"
+              "raw": "{\n  \"userId\": \"{{newUserId}}_updated\",\n  \"password\": \"PostmanPass456!\",\n  \"displayName\": \"Postman Updated User\",\n  \"email\": \"updated_{{newUserEmail}}\",\n  \"phone\": \"{{newUserPhone}}\",\n  \"avatar\": \"/avatars/postman-updated.png\",\n  \"active\": false,\n  \"role\": \"Editor\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/{{createdUserId}}",
@@ -367,6 +518,91 @@
               ]
             },
             "description": "Confirms soft-deleted users are not returned."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('logout succeeds', function () { pm.expect(json.success).to.eql(true); pm.expect(json.code).to.eql('OK'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "logout"
+              ]
+            },
+            "description": "Logs out the current session by revoking the saved access token."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token - validation error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', function () { pm.response.to.have.status(400); });",
+                  "const json = pm.response.json();",
+                  "pm.test('validation error response', function () { pm.expect(json.success).to.eql(false); pm.expect(json.code).to.eql('VALIDATION_ERROR'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "refresh-token"
+              ]
+            },
+            "description": "Verifies refresh token request validation."
           },
           "response": []
         },

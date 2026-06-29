@@ -17,6 +17,16 @@ import java.time.LocalDate;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Defines or implements document file storage operations for uploaded PDF files.
+ * Parameters: N/A.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Component
 public class LocalDocumentFileStorage implements DocumentFileStorage {
 

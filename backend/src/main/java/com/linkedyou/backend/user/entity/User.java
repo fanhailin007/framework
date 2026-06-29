@@ -8,6 +8,16 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Module Name: User Management Module
+ * Main Function: Maps the user database table structure to a Java entity.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 @TableName("users")
 public class User {
@@ -20,6 +30,8 @@ public class User {
 
     @TableField("display_name")
     private String displayName;
+
+    private String role;
 
     private String email;
 

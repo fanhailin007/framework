@@ -9,6 +9,7 @@ import com.linkedyou.backend.user.dto.UserUpdateRequest;
 import com.linkedyou.backend.user.entity.User;
 import com.linkedyou.backend.user.mapper.UserMapper;
 import com.linkedyou.backend.user.service.password.PasswordPolicyValidator;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,16 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Module Name: User Management Module
+ * Main Function: Implements user management business rules, transaction boundaries, and persistence orchestration.
+ * Parameters: Method parameters defined by the service contract.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
 
@@ -58,6 +69,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         User user = new User();
         user.setUserId(request.getUserId());
         user.setDisplayName(request.getDisplayName());
+        user.setRole(request.getRole());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -82,6 +94,9 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
         if (request.getDisplayName() != null) {
             user.setDisplayName(request.getDisplayName());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
         }
         if (request.getEmail() != null) {
             user.setEmail(request.getEmail());

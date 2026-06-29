@@ -2,20 +2,30 @@ package com.linkedyou.backend.document.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Carries validated request data for document upload operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 public class DocumentUploadRequest {
 
     @NotNull
     private MultipartFile file;
 
-    @Positive
+    @PositiveOrZero
     private Long documentId;
 
     @NotBlank
@@ -31,7 +41,7 @@ public class DocumentUploadRequest {
 
     private String content;
 
-    @Positive
+    @PositiveOrZero
     private Long ownerUserId;
 
     @Size(max = 100)
@@ -39,9 +49,9 @@ public class DocumentUploadRequest {
 
     private List<@Size(max = 100) String> tags;
 
-    @Positive
+    @PositiveOrZero
     private Long createdByUserId;
 
-    @Positive
+    @PositiveOrZero
     private Long updatedByUserId;
 }

@@ -9,7 +9,7 @@ import com.linkedyou.backend.document.dto.DocumentUploadRequest;
 import com.linkedyou.backend.document.file.DocumentPdfFile;
 import com.linkedyou.backend.document.service.DocumentManagementService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +28,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Module Name: API Controller Module
+ * Main Function: Exposes REST API endpoints and delegates document requests to the service layer.
+ * Parameters: HTTP path variables, headers, query values, and request body DTOs handled by endpoint methods.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Validated
 @RestController
 @RequestMapping("/api/documents")
@@ -45,12 +55,12 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<DocumentResponse> getById(@PathVariable @Positive Long id) {
+    public ApiResponse<DocumentResponse> getById(@PathVariable @PositiveOrZero Long id) {
         return ApiResponse.success(documentManagementService.getById(id));
     }
 
     @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<Resource> openPdf(@PathVariable @Positive Long id) {
+    public ResponseEntity<Resource> openPdf(@PathVariable @PositiveOrZero Long id) {
         DocumentPdfFile pdfFile = documentManagementService.openPdf(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
@@ -71,24 +81,24 @@ public class DocumentController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<DocumentResponse> update(@PathVariable @Positive Long id,
+    public ApiResponse<DocumentResponse> update(@PathVariable @PositiveOrZero Long id,
                                                 @Valid @RequestBody DocumentUpdateRequest request) {
         return ApiResponse.success(documentManagementService.update(id, request));
     }
 
     @PostMapping("/{id}/publish")
-    public ApiResponse<DocumentResponse> publish(@PathVariable @Positive Long id,
+    public ApiResponse<DocumentResponse> publish(@PathVariable @PositiveOrZero Long id,
                                                  @Valid @RequestBody DocumentPublishRequest request) {
         return ApiResponse.success(documentManagementService.publish(id, request));
     }
 
     @PostMapping("/{id}/archive")
-    public ApiResponse<DocumentResponse> archive(@PathVariable @Positive Long id) {
+    public ApiResponse<DocumentResponse> archive(@PathVariable @PositiveOrZero Long id) {
         return ApiResponse.success(documentManagementService.archive(id));
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
+    public ApiResponse<Void> delete(@PathVariable @PositiveOrZero Long id) {
         documentManagementService.delete(id);
         return ApiResponse.success();
     }

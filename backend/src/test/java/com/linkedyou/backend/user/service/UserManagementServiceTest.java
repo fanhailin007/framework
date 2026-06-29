@@ -25,6 +25,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Module Name: User Management Module Test
+ * Main Function: Verifies User Management Service behavior with automated JUnit test cases.
+ * Parameters: JUnit fixtures, mocks, and test method inputs declared in this test class.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @ExtendWith(MockitoExtension.class)
 class UserManagementServiceTest {
 
@@ -59,19 +69,23 @@ class UserManagementServiceTest {
         request.setUserId("admin");
         request.setPassword("Password123!");
         request.setDisplayName("Administrator");
+        request.setRole("Admin");
         request.setEmail("admin@example.com");
         request.setPhone("13800000000");
 
-        service.create(request);
+        var response = service.create(request);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).insert(captor.capture());
         User saved = captor.getValue();
         assertThat(saved.getUserId()).isEqualTo("admin");
         assertThat(saved.getDisplayName()).isEqualTo("Administrator");
+        assertThat(saved.getRole()).isEqualTo("Admin");
         assertThat(saved.getActive()).isTrue();
         assertThat(saved.getPassword()).isNotEqualTo("Password123!");
         assertThat(new BCryptPasswordEncoder().matches("Password123!", saved.getPassword())).isTrue();
+        assertThat(response.getUserId()).isEqualTo("admin");
+        assertThat(response.getRole()).isEqualTo("Admin");
     }
 
     @Test
@@ -123,17 +137,21 @@ class UserManagementServiceTest {
 
         UserUpdateRequest request = new UserUpdateRequest();
         request.setDisplayName("New Name");
+        request.setRole("Editor");
         request.setEmail("new@example.com");
 
-        service.update(7L, request);
+        var response = service.update(7L, request);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateById(captor.capture());
         User updated = captor.getValue();
         assertThat(updated.getUserId()).isEqualTo("admin");
         assertThat(updated.getDisplayName()).isEqualTo("New Name");
+        assertThat(updated.getRole()).isEqualTo("Editor");
         assertThat(updated.getEmail()).isEqualTo("new@example.com");
         assertThat(updated.getPassword()).isEqualTo("existing-hash");
+        assertThat(response.getDisplayName()).isEqualTo("New Name");
+        assertThat(response.getRole()).isEqualTo("Editor");
     }
 
     @Test
@@ -231,6 +249,7 @@ class UserManagementServiceTest {
         user.setId(7L);
         user.setUserId("admin");
         user.setDisplayName("Administrator");
+        user.setRole("Admin");
         user.setEmail("admin@example.com");
         user.setPhone("13800000000");
         user.setPassword("existing-hash");

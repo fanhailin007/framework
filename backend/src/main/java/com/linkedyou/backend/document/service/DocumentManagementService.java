@@ -9,6 +9,16 @@ import com.linkedyou.backend.document.file.DocumentPdfFile;
 
 import java.util.List;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Defines document management business capabilities for the service layer.
+ * Parameters: Method parameters defined by the service contract.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 public interface DocumentManagementService {
 
     List<DocumentResponse> list(String status);

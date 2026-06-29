@@ -1,6 +1,10 @@
 package com.linkedyou.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.linkedyou.backend.auth.dto.LoginRequest;
+import com.linkedyou.backend.auth.dto.LoginResponse;
+import com.linkedyou.backend.auth.dto.RefreshTokenRequest;
+import com.linkedyou.backend.auth.service.AuthService;
 import com.linkedyou.backend.common.exception.BusinessException;
 import com.linkedyou.backend.common.exception.GlobalExceptionHandler;
 import com.linkedyou.backend.user.dto.UserChangePasswordRequest;
@@ -33,11 +37,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Module Name: API Controller Module Test
+ * Main Function: Verifies User Controller behavior with automated JUnit test cases.
+ * Parameters: JUnit fixtures, mocks, and test method inputs declared in this test class.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
     @Mock
     private UserManagementService userManagementService;
+
+    @Mock
+    private AuthService authService;
 
     private MockMvc mockMvc;
 
@@ -47,7 +64,7 @@ class UserControllerTest {
     void setUp() {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userManagementService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userManagementService, authService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
@@ -76,6 +93,7 @@ class UserControllerTest {
         request.setUserId("new-user");
         request.setPassword("Password123!");
         request.setDisplayName("New User");
+        request.setRole("Admin");
         request.setEmail("new-user@example.com");
 
         mockMvc.perform(post("/api/users")
@@ -90,6 +108,7 @@ class UserControllerTest {
         verify(userManagementService).create(captor.capture());
         assertThat(captor.getValue().getUserId()).isEqualTo("new-user");
         assertThat(captor.getValue().getPassword()).isEqualTo("Password123!");
+        assertThat(captor.getValue().getRole()).isEqualTo("Admin");
     }
 
     @Test
@@ -105,7 +124,106 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message", containsString("userId")));
 
-        verifyNoInteractions(userManagementService);
+        verifyNoInteractions(userManagementService, authService);
+    }
+
+    @Test
+    void loginDelegatesToAuthServiceAndWrapsResponse() throws Exception {
+        UserResponse user = userResponse(7L, "admin");
+        LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setAccessToken("access-token");
+        loginResponse.setRefreshToken("refresh-token");
+        loginResponse.setUser(user);
+        when(authService.login(any(LoginRequest.class))).thenReturn(loginResponse);
+
+        LoginRequest request = new LoginRequest();
+        request.setUserId("admin");
+        request.setPassword("Password123!");
+        request.setDeviceId("device-1");
+
+        mockMvc.perform(post("/api/users/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"))
+                .andExpect(jsonPath("$.data.user.userId").value("admin"))
+                .andExpect(jsonPath("$.data.user.role").value("Admin"));
+
+        ArgumentCaptor<LoginRequest> captor = ArgumentCaptor.forClass(LoginRequest.class);
+        verify(authService).login(captor.capture());
+        assertThat(captor.getValue().getUserId()).isEqualTo("admin");
+        assertThat(captor.getValue().getPassword()).isEqualTo("Password123!");
+    }
+
+    @Test
+    void loginRejectsInvalidRequestWithoutCallingService() throws Exception {
+        LoginRequest request = new LoginRequest();
+        request.setUserId("admin");
+
+        mockMvc.perform(post("/api/users/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message", containsString("password")));
+
+        verifyNoInteractions(userManagementService, authService);
+    }
+
+    @Test
+    void logoutDelegatesToAuthServiceAndReturnsSuccessResponse() throws Exception {
+        mockMvc.perform(post("/api/users/logout")
+                        .header("Authorization", "Bearer access-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("OK"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(authService).logout("Bearer access-token");
+    }
+
+    @Test
+    void refreshTokenDelegatesToAuthServiceAndWrapsResponse() throws Exception {
+        LoginResponse response = new LoginResponse();
+        response.setAccessToken("new-access-token");
+        response.setRefreshToken("refresh-token");
+        response.setUser(userResponse(7L, "admin"));
+        when(authService.refreshToken(any(RefreshTokenRequest.class))).thenReturn(response);
+
+        RefreshTokenRequest request = new RefreshTokenRequest();
+        request.setRefreshToken("refresh-token");
+
+        mockMvc.perform(post("/api/users/refresh-token")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("OK"))
+                .andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"))
+                .andExpect(jsonPath("$.data.user.userId").value("admin"));
+
+        ArgumentCaptor<RefreshTokenRequest> captor = ArgumentCaptor.forClass(RefreshTokenRequest.class);
+        verify(authService).refreshToken(captor.capture());
+        assertThat(captor.getValue().getRefreshToken()).isEqualTo("refresh-token");
+    }
+
+    @Test
+    void refreshTokenRejectsInvalidRequestWithoutCallingService() throws Exception {
+        RefreshTokenRequest request = new RefreshTokenRequest();
+
+        mockMvc.perform(post("/api/users/refresh-token")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message", containsString("refreshToken")));
+
+        verifyNoInteractions(userManagementService, authService);
     }
 
     @Test
@@ -165,7 +283,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message", containsString("newPassword")));
 
-        verifyNoInteractions(userManagementService);
+        verifyNoInteractions(userManagementService, authService);
     }
 
     private static UserResponse userResponse(Long id, String username) {
@@ -173,7 +291,9 @@ class UserControllerTest {
         response.setId(id);
         response.setUserId(username);
         response.setDisplayName(username);
+        response.setRole("Admin");
         response.setActive(true);
         return response;
     }
+
 }

@@ -17,7 +17,9 @@
 3. 启动后端服务。
 4. 按集合顺序运行 `Users` 或 `Documents` 文件夹，也可以运行整个集合。
 
-集合会先创建一个唯一测试用户，并把返回的 `id` 保存为 `createdUserId`，后续详情、更新、更改密码、删除和删除后查询测试都会复用该变量。示例密码符合默认 `security.password-policy` 规则。
+集合会先创建一个唯一测试用户，并把返回的 `id` 保存为 `createdUserId`，后续登录、详情、更新、更改密码、删除和删除后查询测试都会复用该变量。示例密码符合默认 `security.password-policy` 规则。
+
+`Login User - success` 会使用刚创建的启用用户登录，并把返回的 `accessToken` 和 `refreshToken` 保存到集合变量。`Refresh Token - success` 会使用保存的 `refreshToken` 刷新 `accessToken`，当前实现不轮换 `refreshToken`。`Login User - LOGIN_FAILED` 会使用错误密码验证统一失败响应。`Logout User - success` 会使用保存的 `accessToken` 调用登出接口，验证当前会话可以被撤销。
 
 `Documents` 文件夹会创建一个唯一 slug 的测试文档，并把返回的 `id` 保存为 `createdDocumentId`，后续列表、详情、更新、发布、归档、删除和删除后查询测试都会复用该变量。
 

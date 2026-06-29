@@ -2,15 +2,26 @@ package com.linkedyou.backend.document.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Module Name: Document Management Module
+ * Main Function: Carries validated request data for document create operations.
+ * Parameters: Fields declared in this type.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Data
 public class DocumentCreateRequest {
 
-    @Positive
+    @PositiveOrZero
     private Long documentId;
 
     @NotBlank
@@ -26,7 +37,7 @@ public class DocumentCreateRequest {
 
     private String content;
 
-    @Positive
+    @PositiveOrZero
     private Long ownerUserId;
 
     @Size(max = 100)
@@ -40,9 +51,9 @@ public class DocumentCreateRequest {
     @Positive
     private Long fileSize;
 
-    @Positive
+    @PositiveOrZero
     private Long createdByUserId;
 
-    @Positive
+    @PositiveOrZero
     private Long updatedByUserId;
 }

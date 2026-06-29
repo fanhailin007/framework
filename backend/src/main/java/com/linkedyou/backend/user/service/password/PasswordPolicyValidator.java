@@ -14,6 +14,16 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Module Name: User Management Module
+ * Main Function: Validates password policy rules before business data is persisted.
+ * Parameters: N/A.
+ * Development Date: 2026-06-28
+ * Developer: Codex
+ * Update History:
+ * 2026-06-28 - Codex - Added standardized English class header comment.
+ * Updater: Codex
+ */
 @Component
 public class PasswordPolicyValidator {
 
